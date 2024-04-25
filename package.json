@@ -1,26 +1,21 @@
 {
   "name": "blogserver",
   "version": "1.0.0",
-  "description": "Blog server for storing blogs, comments and user details",
+  "description": "",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/sarahlynnx/blogserver.git"
-  },
-  "author": "Sarah Lynn",
+  "keywords": [],
+  "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/sarahlynnx/blogserver/issues"
-  },
-  "homepage": "https://github.com/sarahlynnx/blogserver#readme",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "mongodb": "^6.5.0"
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.5.0",
+    "mongoose": "^8.3.2"
   }
 }
