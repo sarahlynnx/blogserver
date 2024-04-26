@@ -2,10 +2,31 @@ const Post = require('../Models/post');
 
 const createPost = async (req, res, next) => {
     try {
-        const { title, content, author, images } = req.body;
+        const { title, content, images } = req.body;
+        let author = req.user._id;
         const post = new Post({ title, content, author, images });
         await post.save();
-        res.status(200).json({ msg: 'Post created successfully', post});
+        const populatedPost = await Post.findById(post._id)
+            .populate('author', 'name email');
+
+        res.status(200).json({ msg: 'Post created successfully', post: populatedPost });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+const getAllPosts = async (req, res, next) => {
+    try {
+        const posts = await Post.find()
+            .populate("author", "name email");
+        const modifiedPosts = posts.map(post => {
+            const postObject = post.toObject();
+            // Check the length and conditionally append '...'
+            postObject.content = post.content.length > 400 ? post.content.substring(0, 400) + "..." : post.content;
+            return postObject;
+        });
+        res.status(200).json(modifiedPosts);
     } catch (error) {
         next(error);
     }
@@ -14,7 +35,9 @@ const createPost = async (req, res, next) => {
 const getPostById = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const post = await Post.findById(id).populate('comments');
+        const post = await Post.findById(id)
+            .populate('comments')
+            .populate("author", "name email");
 
         if (!post) {
             return res.status(404).json({ msg: 'Post not found' });
@@ -31,7 +54,7 @@ const updatePost = async (req, res, next) => {
         const { title, content } = req.body;
         const { id } = req.params;
 
-        const post = await Post.findByIdAndUpdate(id, {title, content }, {new: true});
+        const post = await Post.findByIdAndUpdate(id, { title, content }, { new: true });
 
         if (!post) {
             return res.status(404).json({ msg: 'Post not found' });
@@ -54,7 +77,7 @@ const deletePost = async (req, res, next) => {
 
         res.status(200).json({ msg: 'Post delted successfully' });
 
-    } catch (error) { 
+    } catch (error) {
         next(error);
     }
 };
@@ -64,13 +87,13 @@ const likePost = async (req, res, next) => {
         const { id } = req.params;
         const post = await Post.findByIdAndUpdate(
             id,
-            {$inc: {likes: 1} },
-            {new: true}
+            { $inc: { likes: 1 } },
+            { new: true }
         );
         if (!post) {
-            return res.status(404).json({ msg: 'Post not found'});
+            return res.status(404).json({ msg: 'Post not found' });
         }
-        res.status(200).json({ msg: 'Like added successfully'});
+        res.status(200).json({ msg: 'Like added successfully' });
     } catch (error) {
         next(error);
     }
@@ -80,9 +103,9 @@ const incrementView = async () => {
     try {
         const { id } = req.params;
         await Post.findByIdAndUpdate(
-            id, 
-            { $inc: { views: 1} },
-            {new: false}
+            id,
+            { $inc: { views: 1 } },
+            { new: false }
         );
         next();
     } catch (error) {
@@ -90,4 +113,4 @@ const incrementView = async () => {
     }
 };
 
-module.exports = { createPost, getPostById, updatePost, deletePost, likePost, incrementView };
+module.exports = { createPost, getAllPosts, getPostById, updatePost, deletePost, likePost, incrementView };
