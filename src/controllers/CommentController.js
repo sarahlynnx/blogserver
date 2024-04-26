@@ -1,16 +1,18 @@
 const Comment = require('../models/comment');
 
-const createComment = async (req, res) => {
+const createComment = async (req, res, next) => {
     try {
 
         const { content, postId } = req.body;
-        const comment = new Comment({ content, post: postId });
+        const userId = req.user.id;
+        const createdAt = new Date();
+
+        const comment = new Comment({ content, author: userId, post: postId, createdAt });
         await comment.save();
         res.status(200).json({ msg: 'Comment created successfully', comment });
 
     } catch (error) {
-        console.error(error.message);
-        res.status(500).send('Server Error');
+        next(error);
     }
 }
 
@@ -27,8 +29,7 @@ const updateComment = async (req, res) => {
 
         res.status(200).json({ msg: 'Comment updated succesfully' });
     } catch (error) {
-        console.error(error.message);
-        res.status(500).send('Server Error');
+        next(error);
     }
 }
 
@@ -42,8 +43,7 @@ const deleteComment = async (req, res) => {
         }
         res.status(200).json({ msg: 'Comment deleted successfully' });
     } catch (error) {
-        console.error(error.message);
-        res.status(500).send('Server Error');
+        next(error);
     }
 }
 
@@ -55,8 +55,7 @@ const getCommentsByPost = async (req, res) => {
 
         res.status(200).json(comments);
     } catch (error) {
-        console.error(error.message);
-        res.status(500).send('Server Error');
+        next(error);
     }
 }
 
