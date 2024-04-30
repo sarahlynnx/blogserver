@@ -4,7 +4,7 @@ const createComment = async (req, res, next) => {
     try {
 
         const { content, postId } = req.body;
-        const userId = req.user.id;
+        const userId = req.user._id;
         const createdAt = new Date();
 
         const comment = new Comment({ content, author: userId, post: postId, createdAt });
@@ -47,11 +47,17 @@ const deleteComment = async (req, res) => {
     }
 }
 
-const getCommentsByPost = async (req, res) => {
+const getCommentsByPost = async (req, res, next) => {
     try {
-        const { postId } = res.params;
 
-        let comments = await Comment.find({ post: postId });
+        const postId = req.query.postId;
+
+        if (!postId) {
+            return res.status(400).json({ msg: 'Bad request: Query param: PostId is mandatory' });
+        }
+        let comments = await Comment
+            .find({ post: postId })
+            .populate('author', 'name email');
 
         res.status(200).json(comments);
     } catch (error) {

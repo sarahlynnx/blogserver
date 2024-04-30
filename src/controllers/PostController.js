@@ -99,7 +99,7 @@ const likePost = async (req, res, next) => {
     }
 };
 
-const incrementView = async () => {
+const incrementView = async (req, res, next) => {
     try {
         const { id } = req.params;
         await Post.findByIdAndUpdate(
