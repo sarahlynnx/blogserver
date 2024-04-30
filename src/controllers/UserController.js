@@ -20,7 +20,7 @@ const registerUser = async (req, res, next) => {
     await user.save();
 
     res.status(200).json({ msg: 'User registered successfully' });
-  
+
   } catch (error) {
     next(error);
   }
@@ -55,10 +55,18 @@ const loginUser = async (req, res) => {
       { expiresIn: 3600 },
       (err, token) => {
         if (err) throw err;
-        res.status(200).json({ token });
+        res.status(200).json({
+          token, 
+          user: {
+            id: user._id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          }
+        });
       }
     );
-    
+
   } catch (error) {
     next(error);
   }
