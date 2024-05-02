@@ -2,12 +2,21 @@ const Post = require('../Models/post');
 
 const createPost = async (req, res, next) => {
     try {
-        const { title, content, images } = req.body;
-        let author = req.user._id;
-        const post = new Post({ title, content, author, images });
+        const { title, content } = req.body;
+        const images = req.files.map(file => ({
+            filename: file.filename, 
+            path: file.path
+        }));
+        console.log(images); 
+        const post = new Post({ 
+            title, 
+            content, 
+            author: req.user._id,
+            images
+        });
         await post.save();
-        const populatedPost = await Post.findById(post._id)
-            .populate('author', 'name email');
+        console.log('Saved Post:', post);
+        const populatedPost = await Post.findById(post._id).populate('author', 'name email');
 
         res.status(200).json({ msg: 'Post created successfully', post: populatedPost });
     } catch (error) {
@@ -22,7 +31,6 @@ const getAllPosts = async (req, res, next) => {
             .populate("author", "name email");
         const modifiedPosts = posts.map(post => {
             const postObject = post.toObject();
-            // Check the length and conditionally append '...'
             postObject.content = post.content.length > 400 ? post.content.substring(0, 400) + "..." : post.content;
             return postObject;
         });
@@ -35,7 +43,12 @@ const getAllPosts = async (req, res, next) => {
 const getPostById = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const post = await Post.findById(id)
+        console.log(`Fetching post ${id} and incrementing view count`);
+        const post = await Post.findByIdAndUpdate(
+            id,
+            { $inc: { views: 1} },
+            { new: true }
+            )
             .populate('comments')
             .populate("author", "name email");
 
@@ -85,32 +98,39 @@ const deletePost = async (req, res, next) => {
 const likePost = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const post = await Post.findByIdAndUpdate(
-            id,
-            { $inc: { likes: 1 } },
-            { new: true }
-        );
+        const userId = req.user._id; 
+
+        const post = await Post.findById(id);
         if (!post) {
             return res.status(404).json({ msg: 'Post not found' });
         }
-        res.status(200).json({ msg: 'Like added successfully' });
+
+        const index = post.likedBy.indexOf(userId);
+        let update;
+        if (index === -1) {
+            update = {
+                $inc: { likes: 1 },
+                $push: { likedBy: userId }
+             };
+        } else {
+            update = {
+                $inc: { likes: -1 },
+                $pull: { likedBy: userId }
+            };
+        }
+
+        const updatedPost = await Post.findByIdAndUpdate(id, update, { new: true });
+        if (!updatedPost.likedBy) {
+            updatedPost.likedBy = []; 
+        }
+        res.status(200).json({
+            likes: updatedPost.likes,
+            likedByUser: updatedPost.likedBy.includes(userId),
+            msg: index === -1 ? 'Like added successfully' : 'Like removed successfully'
+        });
     } catch (error) {
         next(error);
     }
 };
 
-const incrementView = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        await Post.findByIdAndUpdate(
-            id,
-            { $inc: { views: 1 } },
-            { new: false }
-        );
-        next();
-    } catch (error) {
-        next(error);
-    }
-};
-
-module.exports = { createPost, getAllPosts, getPostById, updatePost, deletePost, likePost, incrementView };
+module.exports = { createPost, getAllPosts, getPostById, updatePost, deletePost, likePost };

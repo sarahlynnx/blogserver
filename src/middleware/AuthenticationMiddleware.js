@@ -8,7 +8,6 @@ const authMiddleware = async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         const user = await User.findById(decoded.user.id);
-        console.log('User found:', user);
 
         if (!user) {
             throw new Error();
@@ -32,4 +31,4 @@ const requireRole = (role) => async (req, res, next) => {
     });
 };
 
-module.exports = { authMiddleware, requireRole };
+module.exports = { authMiddleware, requireRole};

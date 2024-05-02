@@ -3,3 +3,4 @@ node_modules/
 .DS_Store
 # React Component Preview
 previewConfig.json
+uploads/
