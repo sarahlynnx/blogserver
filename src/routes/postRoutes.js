@@ -12,5 +12,6 @@ router.put('/:id/like', authMiddleware, PostController.likePost);
 
 router.get('/', PostController.getAllPosts);
 router.get('/:id', PostController.getPostById);
+router.get('/:postId/image/:imageId', PostController.getPostImage);
 
 module.exports = router;

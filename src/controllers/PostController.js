@@ -1,4 +1,5 @@
 const Post = require('../Models/post');
+const path = require('path');
 
 const createPost = async (req, res, next) => {
     try {
@@ -61,6 +62,25 @@ const getPostById = async (req, res, next) => {
         next(error);
     }
 };
+
+const getPostImage = async (req, res, next) => {
+    try {
+      const { postId, imageId } = req.params;
+      const post = await Post.findById(postId);
+  
+      if (!post) {
+        return res.status(404).json({ msg: 'Post not found' });
+      }
+  
+      const image = post.images.find(img => img._id.toString() === imageId);
+      if (!image) {
+        return res.status(404).json({ msg: 'Image not found' });
+      }
+      res.sendFile(path.resolve(__dirname, '..', '..', image.path));
+    } catch (error) {
+      next(error);
+    }
+  };
 
 const updatePost = async (req, res, next) => {
     try {
@@ -133,4 +153,4 @@ const likePost = async (req, res, next) => {
     }
 };
 
-module.exports = { createPost, getAllPosts, getPostById, updatePost, deletePost, likePost };
+module.exports = { createPost, getAllPosts, getPostById, getPostImage, updatePost, deletePost, likePost };
