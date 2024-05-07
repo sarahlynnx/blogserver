@@ -1,4 +1,5 @@
 const Post = require('../Models/post');
+const Comment = require('../models/comment');
 const path = require('path');
 
 const createPost = async (req, res, next) => {
@@ -32,7 +33,7 @@ const getAllPosts = async (req, res, next) => {
             .populate("author", "name email");
         const modifiedPosts = posts.map(post => {
             const postObject = post.toObject();
-            postObject.content = post.content.length > 400 ? post.content.substring(0, 400) + "..." : post.content;
+            postObject.content = post.content.length > 139 ? post.content.substring(0, 138) + "..." : post.content;
             return postObject;
         });
         res.status(200).json(modifiedPosts);
@@ -102,13 +103,14 @@ const updatePost = async (req, res, next) => {
 const deletePost = async (req, res, next) => {
     try {
         const { id } = req.params;
+        await Comment.deleteMany({ post: id });
         const post = await Post.findByIdAndDelete(id);
 
         if (!post) {
             return res.status(404).json({ msg: 'Post not found' });
         }
 
-        res.status(200).json({ msg: 'Post delted successfully' });
+        res.status(200).json({ msg: 'Post and post comments deleted successfully' });
 
     } catch (error) {
         next(error);

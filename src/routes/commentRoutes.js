@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const CommentController = require('../controllers/CommentController');
-const { authMiddleware, requireRole } =  require('../middleware/AuthenticationMiddleware');
+const { authMiddleware } =  require('../middleware/AuthenticationMiddleware');
 
 router.post('/', authMiddleware, CommentController.createComment);
 router.put('/:id', authMiddleware,  CommentController.updateComment);
