@@ -9,14 +9,15 @@ const createComment = async (req, res, next) => {
 
         const comment = new Comment({ content, author: userId, post: postId, createdAt });
         await comment.save();
-        res.status(200).json({ msg: 'Comment created successfully', comment });
+        const populatedComment = await Comment.findById(comment._id).populate('author', 'name email _id');
+        res.status(200).json({ msg: 'Comment created successfully', comment: populatedComment });
 
     } catch (error) {
         next(error);
     }
 }
 
-const updateComment = async (req, res) => {
+const updateComment = async (req, res, next) => {
     try {
         const { content } = req.body;
         const { id } = req.params;
@@ -33,7 +34,7 @@ const updateComment = async (req, res) => {
     }
 }
 
-const deleteComment = async (req, res) => {
+const deleteComment = async (req, res, next) => {
     try {
         const { id } = req.params;
         let comment = await Comment.findByIdAndDelete(id);
