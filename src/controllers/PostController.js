@@ -53,8 +53,10 @@ const getPostById = async (req, res, next) => {
         )
         .populate('comments')
         .populate("author", "name email");
-
-        const likedByUser = post.likedBy.includes(req.user._id);
+        let likedByUser = false;
+        if (req.user) {
+            likedByUser = post.likedBy.includes(req.user._id);
+        } 
         if (!post) {
             return res.status(404).json({ msg: 'Post not found' });
         }
