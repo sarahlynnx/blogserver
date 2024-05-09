@@ -17,7 +17,18 @@ const authMiddleware = async (req, res, next) => {
         req.token = token;
         next();
     } catch (error) {
-        res.status(401).send({ error: 'Please authenticate' });
+        if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
+            console.log("Sending 401 due to token error");
+            return res.status(401).json({
+                error: 'Authentication required',
+                message: 'Invalid or expired token. Please log in again.'
+            });
+        }
+        console.error('Unexpected error in authMiddleware:', error);
+        return res.status(500).json({
+            error: 'Internal Server Error',
+            message: 'An unexpected error occurred.'
+        });    
     }
 };
 

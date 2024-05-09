@@ -2,7 +2,6 @@ const Comment = require('../models/comment');
 
 const createComment = async (req, res, next) => {
     try {
-
         const { content, postId } = req.body;
         const userId = req.user._id;
         const createdAt = new Date();

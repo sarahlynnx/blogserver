@@ -50,15 +50,16 @@ const getPostById = async (req, res, next) => {
             id,
             { $inc: { views: 1} },
             { new: true }
-            )
-            .populate('comments')
-            .populate("author", "name email");
+        )
+        .populate('comments')
+        .populate("author", "name email");
 
+        const likedByUser = post.likedBy.includes(req.user._id);
         if (!post) {
             return res.status(404).json({ msg: 'Post not found' });
         }
 
-        res.status(200).json(post);
+        res.status(200).json({...post._doc, likedByUser: likedByUser});
     } catch (error) {
         next(error);
     }
@@ -140,11 +141,8 @@ const likePost = async (req, res, next) => {
                 $pull: { likedBy: userId }
             };
         }
-
-        const updatedPost = await Post.findByIdAndUpdate(id, update, { new: true });
-        if (!updatedPost.likedBy) {
-            updatedPost.likedBy = []; 
-        }
+        await post.updateOne(update);
+        const updatedPost = await Post.findById(id);
         res.status(200).json({
             likes: updatedPost.likes,
             likedByUser: updatedPost.likedBy.includes(userId),
