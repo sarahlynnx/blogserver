@@ -26,6 +26,14 @@ app.get('/', (req, res) => {
     res.send('Server is running.');
 });
 
+app.get('/api/maps-config', (req, res) => {
+    const mapsAPIKey = process.env.GOOGLE_MAPS_API_KEY;
+    const mapsAPIVersion = process.env.GOOGLE_MAPS_API_VERSION;
+    const mapsURL = `https://maps.googleapis.com/maps/api/js?key=${mapsAPIKey}&v=${mapsAPIVersion}&callback=initMap`;
+    res.json({ mapsURL });
+});
+
+
 app.use('/api/auth', userRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);
