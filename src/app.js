@@ -29,7 +29,7 @@ app.get('/', (req, res) => {
 app.get('/api/maps-config', (req, res) => {
     const mapsAPIKey = process.env.GOOGLE_MAPS_API_KEY;
     const mapsAPIVersion = process.env.GOOGLE_MAPS_API_VERSION;
-    const mapsURL = `https://maps.googleapis.com/maps/api/js?key=${mapsAPIKey}&v=${mapsAPIVersion}&callback=initMap`;
+    const mapsURL = `https://maps.googleapis.com/maps/api/js?key=${mapsAPIKey}&v=${mapsAPIVersion}&callback=initMap&libraries=marker"`;
     res.json({ mapsURL });
 });
 
