@@ -50,16 +50,30 @@ const deleteComment = async (req, res, next) => {
 const getCommentsByPost = async (req, res, next) => {
     try {
 
-        const postId = req.query.postId;
+        const { postId } = req.query;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
 
         if (!postId) {
             return res.status(400).json({ msg: 'Bad request: Query param: PostId is mandatory' });
         }
+
+        const total = await Comment.countDocuments({ post: postId });
+        const totalPages = Math.ceil(total / limit);
+
         let comments = await Comment
             .find({ post: postId })
-            .populate('author', 'name email');
+            .populate('author', 'name email')
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit);
 
-        res.status(200).json(comments);
+        res.status(200).json({
+            comments,
+            currentPage: page,
+            totalPages,
+            totalComments: total
+        });
     } catch (error) {
         next(error);
     }
