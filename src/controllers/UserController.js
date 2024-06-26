@@ -132,8 +132,8 @@ const forgotPassword = async (req, res) => {
 
     const resetLink = `https://sarahlynnx.github.io/Playful-Pathways/blog.html#/login/reset-password/${resetToken}`;
     sendResetEmail(email, resetLink);
-  
-    res.json({msg: 'Reset password link has been sent to your email.'});
+
+    res.json({ msg: 'Reset password link has been sent to your email.' });
   } catch (error) {
     next(error);
   }

@@ -70,7 +70,6 @@ const getCommentsByPost = async (req, res, next) => {
 
         res.status(200).json({
             comments,
-            currentPage: page,
             totalPages,
             totalComments: total
         });
