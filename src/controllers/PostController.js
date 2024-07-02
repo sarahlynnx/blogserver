@@ -6,13 +6,13 @@ const createPost = async (req, res, next) => {
     try {
         const { title, content } = req.body;
         const images = req.files.map(file => ({
-            filename: file.filename, 
+            filename: file.filename,
             path: file.path
         }));
-        console.log(images); 
-        const post = new Post({ 
-            title, 
-            content, 
+        console.log(images);
+        const post = new Post({
+            title,
+            content,
             author: req.user._id,
             images
         });
@@ -30,12 +30,16 @@ const createPost = async (req, res, next) => {
 const getAllPosts = async (req, res, next) => {
     try {
         const posts = await Post.find()
-            .populate("author", "name email");
-        const modifiedPosts = posts.map(post => {
+            .populate("author", "name")
+            .sort({ date: -1 });
+
+        const modifiedPosts = await Promise.all(posts.map(async (post) => {
             const postObject = post.toObject();
+            const totalComments = await Comment.countDocuments({ post: post._id });
             postObject.content = post.content.length > 139 ? post.content.substring(0, 138) + "..." : post.content;
+            postObject.totalComments = totalComments;
             return postObject;
-        });
+        }));
         res.status(200).json(modifiedPosts);
     } catch (error) {
         next(error);
@@ -48,20 +52,20 @@ const getPostById = async (req, res, next) => {
         console.log(`Fetching post ${id} and incrementing view count`);
         const post = await Post.findByIdAndUpdate(
             id,
-            { $inc: { views: 1} },
+            { $inc: { views: 1 } },
             { new: true }
         )
-        .populate('comments')
-        .populate("author", "name email");
+            .populate('comments')
+            .populate("author", "name email");
         let likedByUser = false;
         if (req.user) {
             likedByUser = post.likedBy.includes(req.user._id);
-        } 
+        }
         if (!post) {
             return res.status(404).json({ msg: 'Post not found' });
         }
 
-        res.status(200).json({...post._doc, likedByUser: likedByUser});
+        res.status(200).json({ ...post._doc, likedByUser: likedByUser });
     } catch (error) {
         next(error);
     }
@@ -69,22 +73,22 @@ const getPostById = async (req, res, next) => {
 
 const getPostImage = async (req, res, next) => {
     try {
-      const { postId, imageId } = req.params;
-      const post = await Post.findById(postId);
-  
-      if (!post) {
-        return res.status(404).json({ msg: 'Post not found' });
-      }
-  
-      const image = post.images.find(img => img._id.toString() === imageId);
-      if (!image) {
-        return res.status(404).json({ msg: 'Image not found' });
-      }
-      res.sendFile(path.resolve(__dirname, '..', '..', image.path));
+        const { postId, imageId } = req.params;
+        const post = await Post.findById(postId);
+
+        if (!post) {
+            return res.status(404).json({ msg: 'Post not found' });
+        }
+
+        const image = post.images.find(img => img._id.toString() === imageId);
+        if (!image) {
+            return res.status(404).json({ msg: 'Image not found' });
+        }
+        res.sendFile(path.resolve(__dirname, '..', '..', image.path));
     } catch (error) {
-      next(error);
+        next(error);
     }
-  };
+};
 
 const updatePost = async (req, res, next) => {
     try {
@@ -123,7 +127,7 @@ const deletePost = async (req, res, next) => {
 const likePost = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const userId = req.user._id; 
+        const userId = req.user._id;
 
         const post = await Post.findById(id);
         if (!post) {
@@ -136,7 +140,7 @@ const likePost = async (req, res, next) => {
             update = {
                 $inc: { likes: 1 },
                 $push: { likedBy: userId }
-             };
+            };
         } else {
             update = {
                 $inc: { likes: -1 },
